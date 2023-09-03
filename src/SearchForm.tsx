@@ -7,15 +7,15 @@ import { Person, SearchFormParams } from './Shared';
 
 
 interface SearchFormProps {
-  onSearch: (searchParams: SearchFormParams) => Promise<void>;
-  onSearchComplete: () => void; 
-  onError: (errMsg: any) => void;
+  // onSearch: (searchParams: SearchFormParams) => Promise<void>;
+  // onSearchComplete: () => void; 
+  // onError: (errMsg: any) => void;
 }
 
 const API_URL = 'http://localhost:8443/rest/intern'; //  backend API base URL
 
 
-const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onError }) => {
+const SearchForm: React.FC<SearchFormProps> = () => {
   const [showSearchForm, setShowSearchForm] = useState(true);
 
   const [loading, setLoading] = useState(false);
