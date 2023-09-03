@@ -1,18 +1,10 @@
 
 //  src/SearchForm.tsx
 import React, { useState } from 'react';
-import { TextField, Button, Grid, Snackbar, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
+import { TextField, Button, Grid, Stack, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
 import axios from 'axios';
-import { Person } from './SearchResults';
+import { Person, SearchFormParams } from './Shared';
 
-
-export interface SearchFormParams {
-  nachname: string;
-  vorname: string;
-  iban: string;
-  email: string;
-  ort: string;
-}   
 
 interface SearchFormProps {
   onSearch: (searchParams: SearchFormParams) => Promise<void>;
@@ -37,18 +29,21 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
 
   const [error, setError] = useState('');
   const [transformedResults, setTransformedResults] = useState<Person[]>([]);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
+ 
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
     if (name === 'ort' && value) {
       if (!searchParams.nachname && !searchParams.vorname) {
-        setSnackbarMessage('When searching by city, either Nachname or Vorname must also be filled.');
-        setSnackbarOpen(true);
+        setError('Entweder der Nachname oder der Vorname muss auch bei der Suche nach der Stadt eingegeben werden.');
         return;
+      } else {
+        setError('');
       }
+    } else {
+      // Clear the error message for other fields when they are clicked
+      setError('');
     }
 
     // Update the searchParams with the new value
@@ -62,12 +57,12 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
       const { nachname, vorname, iban, email, ort } = searchParams;
   
       if (!nachname && !vorname && !iban && !email && !ort) {
-        onError('At least one field must be filled.');
+        setError('Mindestens ein Feld muss ausgefüllt werden.');
         return;
       }
+  
       setLoading(true);
       setError('');
-      setSnackbarOpen(false);
 
     try {
       const response = await axios.get(`${API_URL}/personen`, { params: searchParams });
@@ -105,7 +100,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
       const errorMessage = err instanceof Error ? err.message : 'An error occurred during the search.';
       setError(errorMessage);
       setLoading(false);
-      setSnackbarOpen(true);
     }
   };
 
@@ -115,10 +109,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
     // Show the search form
     setShowSearchForm(true);
   };
-  console.log('transformedResults from searchForm', transformedResults);
+  
   return (
     <div>
-    {showSearchForm ? (
+    {loading ? (
+        <CircularProgress />
+      ) : (
+     showSearchForm ? (
     <form onSubmit={handleSubmit}>
       <Grid container spacing={2}>
         <Grid item xs={12} sm={6}>
@@ -172,12 +169,6 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
             Search
           </Button>
           </div>
-          <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={5000}
-            onClose={() => setSnackbarOpen(false)}
-            message={snackbarMessage}
-          />
         </Grid>
       </Grid>
       {error && <Alert severity="error">{error}</Alert>}
@@ -186,21 +177,35 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
       <div>
         {transformedResults.length > 0 ? (
          <>
-         <h2 style={{ margin: '40px 0' }}> RESULTS : </h2>
-    
-      {loading ? (
-      <CircularProgress />
-       ) : (
-      <TableContainer component={Paper}>
+         <h2 style={{ margin: '40px 0', color: 'darkblue' }}> RESULTS : </h2>
+
+      <TableContainer
+       component={Paper}
+       sx={{
+        boxShadow: '5px 5px 14px 8px #DAE2FF', // Add a box shadow to the table container
+      }}
+    >
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Vorname</TableCell>
-            <TableCell>Nachname</TableCell>
-            <TableCell>Geschlecht</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Ort</TableCell>
-            <TableCell>IBAN</TableCell>
+            <TableCell sx={{backgroundColor: '#D7E4FF',fontWeight: 'bold', }}>
+              Vorname
+              </TableCell>
+              <TableCell sx={{backgroundColor: '#EAE4FF',fontWeight: 'bold', }}>
+              Nachname
+              </TableCell>
+              <TableCell sx={{backgroundColor: '#E7EDFF',fontWeight: 'bold', }}>
+              Geschlecht
+            </TableCell>
+            <TableCell sx={{backgroundColor: '#FBFCFF',fontWeight: 'bold', }}>
+              Email
+            </TableCell>
+            <TableCell sx={{backgroundColor: '5px 5px 15px 5px #D7E4FF',fontWeight: 'bold', }}>
+              Ort
+            </TableCell>
+            <TableCell sx={{backgroundColor: '5px 5px 15px 5px #D7E4FF',fontWeight: 'bold', }}>
+            IBAN
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -217,12 +222,13 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
         </TableBody>
       </Table>
     </TableContainer>
-    )}
     </>
     ) : (
-      <div style={{ textAlign: 'center', marginTop: '20px' }}>
-            <p>No matching results found.</p>
-          </div>
+      
+        <Stack sx={{ width: '100%' }} spacing={2}>
+          <Alert severity="error"><p>No matching results found.</p></Alert>
+        </Stack>
+      
     )}
 
 <div style={{ display: 'flex', justifyContent: 'center', marginTop: '30px' }}>
@@ -230,7 +236,8 @@ const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onSearchComplete, onE
     New Search
   </Button>
 </div>
-     </div>
+</div>
+  )
   )}
   </div>
   );

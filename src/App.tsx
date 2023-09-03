@@ -1,21 +1,15 @@
 import { Container, Snackbar, Typography } from "@mui/material";
 import React, { useState } from "react";
 import { Router, Routes, Route, Link } from "react-router-dom";
-import ResultsDisplay from "./ResultsDisplay";
-import SearchForm, { SearchFormParams } from "./SearchForm";
-import SearchResult, { Person, fetchData } from "./SearchResults";
+import SearchForm from "./SearchForm";
+import { Person, fetchData, SearchResult,SearchFormParams } from "./Shared";
+
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [results, setResults] = useState<Person[]>([]);
-  const [searchParams, setSearchParams] = useState<SearchFormParams>({
-    nachname: "",
-    vorname: "",
-    iban: "",
-    email: "",
-    ort: ""
-  });
+ 
 
   const handleSearch = async (searchParams: SearchFormParams) => {
     setLoading(true);
@@ -28,14 +22,17 @@ const App: React.FC = () => {
       console.log('Search parameters:', searchParams);
 
       // Transform SearchResult into Person format
-      const transformedResults = response.data.map((result: SearchResult) => ({
+      const transformedResults = response.map((result: SearchResult) => ({
         id: result.id,
         vorname: result.vorname,
         nachname: result.nachname,
         geschlecht: result.geschlecht,
         ort: result.anschriften[0]?.ort,
         email: result.kommunikationsadressen[0]?.email,
-        iban: result.bankverbindungen[0]?.iban 
+        iban: result.bankverbindungen[0]?.iban,
+        anschriften: result.anschriften, 
+        kommunikationsadressen: result.kommunikationsadressen, 
+        bankverbindungen: result.bankverbindungen,
       }));
 
       setLoading(false);
@@ -49,11 +46,21 @@ const App: React.FC = () => {
   
     return (
       <Container maxWidth="md">
-      <Typography variant="h4" align="center" margin='45px'gutterBottom>
-         <Link to="/" color="inherit">
-          Search Form
-        </Link>
-      </Typography>
+      <Typography
+      variant="h4"
+      align="center"
+      sx={{
+    color: 'darkblue', // Change to the color you prefer
+    padding: '16px',
+    border: '1px solid darkblue', // Add a border
+    borderRadius: '4px', // Add some border radius for a card-like appearance
+    marginBottom: '50px',
+    marginTop: '20px', // Adjust margin as needed
+  }}
+  gutterBottom
+>
+  Search Form
+</Typography>
           <Routes>
             <Route
               path="/"
@@ -70,8 +77,6 @@ const App: React.FC = () => {
               />
               )}
               />
-    
-            <Route path="/result" element={<ResultsDisplay />} />
           </Routes>
       </Container>
     );
