@@ -1,23 +1,17 @@
-
-//  src/SearchForm.tsx
 import React, { useState } from 'react';
 import { TextField, Button, Grid, Stack, Alert, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, CircularProgress } from '@mui/material';
-import axios from 'axios';
-import { Person, SearchFormParams } from './Shared';
+import { Person, SearchFormParams } from './../common/types';
+import { fetchData } from './../common/utilities';
 
 
-interface SearchFormProps {
-  // onSearch: (searchParams: SearchFormParams) => Promise<void>;
-  // onSearchComplete: () => void; 
-  // onError: (errMsg: any) => void;
-}
+const SearchForm: React.FC = () => {
 
-const API_URL = 'http://localhost:8443/rest/intern'; //  backend API base URL
+  const tableHeaderCellStyle = {
+    backgroundColor: '#E7EDFF',
+    fontWeight: 'bold',
+  };
 
-
-const SearchForm: React.FC<SearchFormProps> = () => {
   const [showSearchForm, setShowSearchForm] = useState(true);
-
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useState<SearchFormParams>({
     nachname: '',
@@ -34,6 +28,7 @@ const SearchForm: React.FC<SearchFormProps> = () => {
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
 
+     // Handle validation for the "ort" field
     if (name === 'ort' && value) {
       if (!searchParams.nachname && !searchParams.vorname) {
         setError('Entweder der Nachname oder der Vorname muss auch bei der Suche nach der Stadt eingegeben werden.');
@@ -47,15 +42,17 @@ const SearchForm: React.FC<SearchFormProps> = () => {
     }
 
     // Update the searchParams with the new value
-    setSearchParams((prevParams) => ({
+    setSearchParams((prevParams: any) => ({
       ...prevParams,
       [name]: value,
     }));
   };
-   
+
+     // Handle form submission
     const handleSubmit = async () => {
       const { nachname, vorname, iban, email, ort } = searchParams;
-  
+
+       // Validate that at least one field is filled
       if (!nachname && !vorname && !iban && !email && !ort) {
         setError('Mindestens ein Feld muss ausgefüllt werden.');
         return;
@@ -65,22 +62,8 @@ const SearchForm: React.FC<SearchFormProps> = () => {
       setError('');
 
     try {
-      const response = await axios.get(`${API_URL}/personen`, { params: searchParams });
-      // Transform response data as needed
-      const transformedResults = response.data.map((result: Person) => ({
-        vorname: result.vorname,
-        nachname: result.nachname,
-        geschlecht: result.geschlecht,
-        ort: result.anschriften[0]?.ort || 'N/A',
-        email: result.kommunikationsadressen[0]?.email || 'N/A',
-        iban: result.bankverbindungen[0]?.iban || 'N/A',
-      })).filter(((result: Person) => 
-        (!nachname || result.nachname.toLowerCase().includes(nachname.toLowerCase())) &&
-        (!vorname || result.vorname.toLowerCase().includes(vorname.toLowerCase())) &&
-        (!iban || result.iban.includes(iban)) &&
-        (!email || result.email.toLowerCase().includes(email.toLowerCase())) &&
-        (!ort || result.ort.toLowerCase().includes(ort.toLowerCase()))
-      ));
+      
+      const transformedResults = await fetchData(searchParams);
 
       setTransformedResults(transformedResults); 
       setLoading(false); 
@@ -103,12 +86,12 @@ const SearchForm: React.FC<SearchFormProps> = () => {
     }
   };
 
+    // Handle starting a new search
   const handleNewSearch = () => {
-    // Reset the transformedResults state to clear the previous results
     setTransformedResults([]);
-    // Show the search form
     setShowSearchForm(true);
   };
+
   
   return (
     <div>
@@ -188,24 +171,12 @@ const SearchForm: React.FC<SearchFormProps> = () => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell sx={{backgroundColor: '#D7E4FF',fontWeight: 'bold', }}>
-              Vorname
-              </TableCell>
-              <TableCell sx={{backgroundColor: '#EAE4FF',fontWeight: 'bold', }}>
-              Nachname
-              </TableCell>
-              <TableCell sx={{backgroundColor: '#E7EDFF',fontWeight: 'bold', }}>
-              Geschlecht
-            </TableCell>
-            <TableCell sx={{backgroundColor: '#FBFCFF',fontWeight: 'bold', }}>
-              Email
-            </TableCell>
-            <TableCell sx={{backgroundColor: '5px 5px 15px 5px #D7E4FF',fontWeight: 'bold', }}>
-              Ort
-            </TableCell>
-            <TableCell sx={{backgroundColor: '5px 5px 15px 5px #D7E4FF',fontWeight: 'bold', }}>
-            IBAN
-            </TableCell>
+          <TableCell sx={tableHeaderCellStyle}>Vorname</TableCell>
+          <TableCell sx={tableHeaderCellStyle}>Nachname</TableCell>
+          <TableCell sx={tableHeaderCellStyle}>Geschlecht</TableCell>
+          <TableCell sx={tableHeaderCellStyle}>Email</TableCell>
+          <TableCell sx={tableHeaderCellStyle}>Ort</TableCell>
+          <TableCell sx={tableHeaderCellStyle}>IBAN</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

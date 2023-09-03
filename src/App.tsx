@@ -1,7 +1,7 @@
 import { Container, Typography } from "@mui/material";
 import React from "react";
 import { Routes, Route } from "react-router-dom";
-import SearchForm from "./SearchForm";
+import SearchForm from "./components/SearchForm";
 
 
 
@@ -19,11 +19,11 @@ const App: React.FC = () => {
          borderRadius: '4px', 
          marginBottom: '50px',
          marginTop: '20px', 
-  }}
-  gutterBottom
->
-  Search Form
-</Typography>
+         }}
+     gutterBottom
+    >
+    Search Form
+  </Typography>
           <Routes>
             <Route
               path="/"
